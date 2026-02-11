@@ -106,7 +106,7 @@ def process_single_lecture(input_file: Path):
 
 def main():
     parser = argparse.ArgumentParser(description="Course Summarizer CLI")
-    parser.add_argument("command", choices=["process", "synthesize", "clean"], default="process", nargs="?")
+    parser.add_argument("command", choices=["process", "synthesize", "clean", "refresh"], default="process", nargs="?")
     parser.add_argument("--lectures_dir", default=None)
     parser.add_argument("--out_root", default=None)
     parser.add_argument("--compile-pdf", action="store_true", help="Compile LaTeX to PDF after synthesis")
@@ -170,6 +170,59 @@ def main():
             tex_file = settings.out_root / "synthesized" / "course_notes.tex"
             if tex_file.exists():
                 latex_to_pdf(tex_file, clean=True)
+
+    elif cmd == "refresh":
+        settings.out_root.mkdir(parents=True, exist_ok=True)
+
+        inputs = list(settings.lectures_dir.glob("*.pptx")) + list(settings.lectures_dir.glob("*.pdf"))
+        inputs = [p for p in inputs if not p.name.startswith(".")]
+        inputs.sort()
+
+        # Detect already-processed lectures
+        already_done = {
+            d.name
+            for d in settings.out_root.iterdir()
+            if d.is_dir() and (d / "lecture_notes.tex").exists()
+        }
+        new_inputs = [p for p in inputs if p.stem not in already_done]
+
+        if not new_inputs:
+            print("[info] No new lectures found. Skipping per-lecture processing.")
+        else:
+            print(f"[info] Found {len(new_inputs)} new lecture(s) out of {len(inputs)} total. Processing...")
+
+            from concurrent.futures import as_completed
+
+            with ThreadPoolExecutor(max_workers=settings.max_workers) as ex:
+                futures = [ex.submit(process_single_lecture, p) for p in new_inputs]
+                for _ in tqdm(as_completed(futures), total=len(new_inputs), desc="Processing New Lectures"):
+                    pass
+
+        # Always rebuild structure + synthesis so the course summary reflects all lectures
+        struct_json = settings.out_root / "synthesized" / "structure.json"
+        if struct_json.exists():
+            struct_json.unlink()
+            print("[info] Removed old structure.json to force re-inference.")
+
+        print("[info] Running synthesis on all lectures...")
+        synthesize_course(settings.out_root)
+
+        if args.compile_pdf:
+            tex_file = settings.out_root / "synthesized" / "course_notes.tex"
+            if tex_file.exists():
+                try:
+                    pdf = latex_to_pdf(tex_file, clean=True)
+                    print(f"[success] Generated PDF: {pdf}")
+                except Exception as e:
+                    print(f"[error] PDF compilation failed: {e}")
+
+        if args.clean_intermediate:
+            print("[info] Cleaning intermediate files...")
+            for d in settings.out_root.iterdir():
+                if d.is_dir() and (d / "slides_png").exists():
+                    import shutil
+                    shutil.rmtree(d / "slides_png")
+            print("[ok] Cleanup done.")
 
     elif cmd == "clean":
         if settings.out_root.exists():

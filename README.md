@@ -14,6 +14,7 @@ Built with **LangChain**, **Pydantic**, and **Google Gemini** (via OpenRouter), 
     -   **Latex Synthesis**: Generates exam-grade LaTeX notes for each lecture and a unified course book.
 -   **PDF Compilation**: Automatically compiles generated LaTeX into PDFs (requires `pdflatex` or `latexmk`).
 -   **Cleanup**: Option to remove intermediate files (PNGs) to save space.
+-   **Incremental Refresh**: Detect new lectures and process only those, while keeping existing outputs and rebuilding the course summary.
 -   **Configurable**: Uses `.env` and `scripts/config.py` for easy configuration.
 
 ## 🛠️ Prerequisites
@@ -74,7 +75,17 @@ python scripts/main.py process --lectures_dir lectures --out_root out --compile-
 -   `--compile-pdf`: Compile the final course notes into a PDF.
 -   `--clean-intermediate`: Remove intermediate slide images after processing to save space.
 
-### 2. Synthesize Only
+### 2. Refresh (Incremental Update)
+
+If new lectures were added to the input directory, `refresh` will process **only the new ones** while keeping existing outputs intact, then rebuild the full course summary:
+
+```bash
+python scripts/main.py refresh --lectures_dir lectures --out_root out --compile-pdf
+```
+
+A lecture is considered "already processed" if its output directory contains a `lecture_notes.tex` file.
+
+### 3. Synthesize Only
 
 If you have already processed lectures and want to re-run the course synthesis (merging all notes):
 
@@ -82,7 +93,7 @@ If you have already processed lectures and want to re-run the course synthesis (
 python scripts/main.py synthesize --out_root out --compile-pdf
 ```
 
-### 3. Clean Output
+### 4. Clean Output
 
 Removes the entire output directory.
 

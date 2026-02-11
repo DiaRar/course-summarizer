@@ -29,8 +29,6 @@ def summarize_lecture(
     slides_content = slide_blocks_file.read_text(encoding="utf-8")
     
     # We might need to split if too large, but Gemini Flash has huge context.
-    # Let's try one-shot for simplicity and coherence, falling back if needed?
-    # Actually, original script likely just dumped it all.
     
     prompt = f"""
     Here is the content of a lecture (JSON format with slide text and image paths).

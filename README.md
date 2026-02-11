@@ -18,19 +18,25 @@ Built with **LangChain**, **Pydantic**, and **Google Gemini** (via OpenRouter), 
 
 ## 🛠️ Prerequisites
 
--   **Python 3.10+**
+-   **Python 3.12+**
 -   **LibreOffice** (for PPTX -> PDF conversion):
-    -   macOS: `brew install --cask libreoffice`
+    -   **macOS**: `brew install --cask libreoffice`
+    -   **Windows**: Download and install from [libreoffice.org](https://www.libreoffice.org/download/download/). Ensure `soffice` is in your PATH.
+    -   **Linux (Ubuntu/Debian)**: `sudo apt install libreoffice`
 -   **Poppler** (for PDF rendering):
-    -   macOS: `brew install poppler`
+    -   **macOS**: `brew install poppler`
+    -   **Windows**: Download binary releases (e.g., from [github.com/oschwartz10612/poppler-windows](https://github.com/oschwartz10612/poppler-windows)), extract, and add the `bin` folder to your PATH.
+    -   **Linux (Ubuntu/Debian)**: `sudo apt install poppler-utils`
 -   **LaTeX Distribution** (for PDF compilation):
-    -   macOS: `brew install mactex` or `brew install basictex` (and ensuring `pdflatex` is in PATH)
+    -   **macOS**: `brew install mactex` or `brew install basictex`
+    -   **Windows**: Install [MiKTeX](https://miktex.org/) or [TeX Live](https://www.tug.org/texlive/windows.html). Ensure `pdflatex` is in PATH.
+    -   **Linux (Ubuntu/Debian)**: `sudo apt install texlive-latex-base texlive-fonts-recommended texlive-latex-extra`
 
 ## 📦 Installation
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/course_summarizer.git
+    git clone https://github.com/DiaRar/course-summarizer.git
     cd course_summarizer
     ```
 
@@ -50,9 +56,6 @@ Built with **LangChain**, **Pydantic**, and **Google Gemini** (via OpenRouter), 
     Create a `.env` file:
     ```bash
     OPENROUTER_API_KEY=sk-your-key
-    # Optional overrides
-    # OPENAI_BASE_URL=https://openrouter.ai/api/v1
-    # VISION_MODEL=google/gemini-2.0-flash-001
     ```
 
 ## 🏃 Usage
@@ -102,7 +105,6 @@ course_summarizer/
 │   │   ├── pdf_tools.py
 │   │   ├── summarizer.py
 │   │   └── synthesis.py
-│   └── legacy/             # Old scripts (deprecated)
 └── requirements.txt
 ```
 

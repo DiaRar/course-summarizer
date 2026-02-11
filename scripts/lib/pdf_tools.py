@@ -8,9 +8,6 @@ def run_cmd(cmd: List[str]) -> None:
     try:
         subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError as e:
-        # Re-run to capture stderr for the exception if needed, or just print
-        # For production cleanliness we might want to log instead of print
-        # But for now let's re-raise with message
         raise RuntimeError(f"Command failed: {' '.join(cmd)}") from e
 
 def ensure_bin(name: str) -> str:
@@ -65,13 +62,11 @@ def latex_to_pdf(tex_file: Path, out_dir: Path = None, clean: bool = True) -> Pa
     
     out_dir.mkdir(parents=True, exist_ok=True)
     
-    # We use pdflatex or xelatex. 
-    # latexmk is better if available as it handles multiple passes.
+    # Try latexmk first, fallback to pdflatex
     compiler = shutil.which("latexmk")
     if compiler:
         cmd = [compiler, "-pdf", "-interaction=nonstopmode", f"-output-directory={out_dir}", str(tex_file)]
     else:
-        # Fallback to pdflatex (might need 2 runs for refs)
         compiler = ensure_bin("pdflatex")
         cmd = [compiler, "-interaction=nonstopmode", f"-output-directory={out_dir}", str(tex_file)]
         

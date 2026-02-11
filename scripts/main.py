@@ -35,13 +35,8 @@ def process_single_lecture(input_file: Path):
             pdf_to_pngs(tmp_pdf, slides_png_dir, dpi=settings.dpi)
             
             # PPTX -> Markdown
-            # using pptx2md-diar via subprocess as it's a CLI tool mostly
-            # We can import if available, but CLI is safer given the deps
             import subprocess
             cmd = ["pptx2md", str(input_file), "-o", str(out_dir / "slides.md"), "--disable-image"] 
-            # Check if pptx2md is installed or use the one in scripts?
-            # Original code used `scripts/convert_with_pptx2md.py` which wraps `pptx2md`.
-            # We should assume `pptx2md` is in path or venv.
             subprocess.check_call(cmd, stdout=subprocess.DEVNULL)
             
             # Clean temp PDF
@@ -149,8 +144,6 @@ def main():
              for _ in tqdm(as_completed(futures), total=len(inputs), desc="Processing Lectures"):
                  pass
              
-        # After processing, usually synthesis follows automatically?
-        # Let's run synthesis automatically if process was run
         print("\n[info] Processing complete. Running synthesis...")
         synthesize_course(settings.out_root)
         
@@ -164,8 +157,6 @@ def main():
                     print(f"[error] PDF compilation failed: {e}")
                     
         if args.clean_intermediate:
-            # Implement cleanup
-            # rm slides_png folders?
             print("[info] Cleaning intermediate files...")
             for d in settings.out_root.iterdir():
                 if d.is_dir() and (d / "slides_png").exists():

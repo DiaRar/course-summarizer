@@ -1,20 +1,32 @@
 from typing import Optional
 from pathlib import Path
+from pydantic import Field, BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
 
-class Settings(BaseSettings):
-    # Core
-    openai_api_key: Optional[str] = Field(None, validation_alias="OPENAI_API_KEY")
+class EnvSettings(BaseSettings):
     openrouter_api_key: Optional[str] = Field(None, validation_alias="OPENROUTER_API_KEY")
-    openai_base_url: str = Field("https://openrouter.ai/api/v1", validation_alias="OPENAI_BASE_URL")
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
+_env_loader = EnvSettings()
+
+class Settings(BaseModel):
+    # Secrets
+    openrouter_api_key: Optional[str] = _env_loader.openrouter_api_key
+    
+    # Core
+    openai_base_url: str = "https://openrouter.ai/api/v1"
     
     # Models
-    vision_model: str = "google/gemini-2.0-flash-001"
-    text_model: str = "google/gemini-2.0-flash-001"
-    mini_text_model: str = "google/gemini-2.0-flash-001"
+    vision_model: str = "google/gemini-3-flash-preview"
+    text_model: str = "google/gemini-3-flash-preview"
+    mini_text_model: str = "google/gemini-3-flash-preview"
     
-    # Paths (defaults, can be overridden by CLI args usually)
+    # Paths
     lectures_dir: Path = Path("lectures")
     out_root: Path = Path("out")
     
@@ -32,11 +44,5 @@ class Settings(BaseSettings):
     
     # Synthesis
     synthesis_max_output_tokens: int = 500000
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
-    )
 
 settings = Settings()

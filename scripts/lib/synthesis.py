@@ -39,12 +39,7 @@ def infer_structure(out_root: Path) -> None:
         print("[warn] No processed lectures found to infer structure from.")
         return
 
-    # Simple inference: default to 1 chapter per lecture or ask LLM
-    # For speed, let's just create a simple linear structure if we want "production level" reliability
-    # or use a cheap LLM call to organize them.
-    
-    # Let's ask LLM to group them if there are many, or just list them.
-    # To save tokens, we just list filenames and ask for a JSON structure.
+    # Ask LLM to optimize structure
     
     prompt = f"""
     Organize these lecture folders into a logical course structure (Chapters -> Parts -> Files).
@@ -112,12 +107,7 @@ def synthesize_course(out_root: Path) -> None:
         p = out_root / lec_name / "lecture_notes.tex"
         if p.exists():
             content = p.read_text(encoding="utf-8")
-            # Rewrite image paths: {img/...} -> {LectureX/img/...}
-            # Relative to the synthesized/ folder? 
-            # Usually we compile from 'synthesized/', so we need path to headers '.../LectureX/img'
-            # OR we compile from out_root?
-            # Standard: compile course_notes.tex inside synthesized/. 
-            # So paths should be ../LectureName/img/...
+            # Rewrite image paths to be relative to the synthesized directory
             
             def repl(m):
                 # match {img/...}

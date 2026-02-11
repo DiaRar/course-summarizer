@@ -7,7 +7,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import List, Optional
 
-from _openai import ModelConfig, responses_text
+from llm_client import ModelConfig, call_text
 
 
 CHAPTER_PATS = [
@@ -92,10 +92,10 @@ def main() -> None:
             f"Slides sample:\n{md_sample}"
         )
         try:
-            raw = responses_text(
+            raw = call_text(
                 model=args.text_model,
-                system="You label finance lectures by chapter number and topic.",
-                user=prompt,
+                system_prompt="You label academic lectures by chapter number and topic.",
+                user_prompt=prompt,
                 temperature=0.0,
                 max_output_tokens=200,
             ).strip()

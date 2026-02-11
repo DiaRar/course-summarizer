@@ -6,10 +6,10 @@ import re
 from pathlib import Path
 from typing import List, Tuple
 
-from _openai import ModelConfig, responses_text
+from llm_client import ModelConfig, call_text
 
 
-SYSTEM = """You synthesize full Financial Management course notes in LaTeX.
+SYSTEM = """You synthesize full academic course notes in LaTeX.
 You are strict about notation consistency and remove redundancy.
 You keep math correct and exam-useful.
 You keep key figures where helpful (referencing the existing embedded images in the lecture notes)."""
@@ -113,10 +113,10 @@ def main() -> None:
         notes=notes[:400000],
     )
 
-    out = responses_text(
+    out = call_text(
         model=args.text_model,
-        system=SYSTEM,
-        user=user,
+        system_prompt=SYSTEM,
+        user_prompt=user,
         temperature=0.05,
         max_output_tokens=args.max_output_tokens,
     )

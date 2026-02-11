@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Dict, Tuple
 
-from _openai import ModelConfig, responses_text
+from llm_client import ModelConfig, call_text
 
 
 SYSTEM = """You are an expert TA for a math-heavy Financial Management course.
@@ -56,6 +56,7 @@ def main() -> None:
     ap.add_argument("--lecture_dir", required=True)
     ap.add_argument("--text_model", default=ModelConfig().text_model)
     ap.add_argument("--max_output_tokens", type=int, default=6500)
+    ap.add_argument("--system_prompt", default=None, help="Path to system prompt txt file, or raw string. Defaults to finance prompt if not set.")
     args = ap.parse_args()
 
     lecture_dir = Path(args.lecture_dir)
@@ -79,10 +80,19 @@ def main() -> None:
         captions_json=json.dumps(captions, ensure_ascii=False, indent=2)[:60000],
     )
 
-    out = responses_text(
+    system_prompt = SYSTEM
+    if args.system_prompt:
+        # Check if it's a file
+        p = Path(args.system_prompt)
+        if p.exists() and p.is_file():
+            system_prompt = p.read_text(encoding="utf-8")
+        else:
+            system_prompt = args.system_prompt
+
+    out = call_text(
         model=args.text_model,
-        system=SYSTEM,
-        user=user,
+        system_prompt=system_prompt,
+        user_prompt=user,
         temperature=0.15,
         max_output_tokens=args.max_output_tokens,
     )

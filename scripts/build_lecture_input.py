@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List
 
-from _openai import ModelConfig, responses_text, responses_vision
+from llm_client import ModelConfig, call_text, call_vision
 
 
 @dataclass
@@ -127,10 +127,10 @@ def main() -> None:
             f"Title: {title}\n\nBody:\n{body}"
         )
         try:
-            out = responses_text(
+            out = call_text(
                 model=args.glitch_fix_model,
-                system="You are a minimal proofreader. Only fix clear typos/spacing/OCR junk; do not rewrite content.",
-                user=prompt,
+                system_prompt="You are a minimal proofreader. Only fix clear typos/spacing/OCR junk; do not rewrite content.",
+                user_prompt=prompt,
                 temperature=0.0,
                 max_output_tokens=min(2000, max(300, len(body) // 2)),
             )
@@ -188,9 +188,9 @@ def main() -> None:
 
             try:
                 max_tokens = min(6000, max(800, sum(len(b) for b in batch_bodies) // 2))
-                out = responses_vision(
+                out = call_vision(
                     model=args.glitch_fix_vision_model,
-                    system="You repair slide text using the provided images. Keep formatting, bullets, and formulas; only patch missing/garbled text.",
+                    system_prompt="You repair slide text using the provided images. Keep formatting, bullets, and formulas; only patch missing/garbled text.",
                     user_text=prompt,
                     image_paths=image_paths,
                     max_output_tokens=max_tokens,
@@ -231,10 +231,10 @@ def main() -> None:
             f"Title: {title}\n\nMarkdown:\n{body}"
         )
         try:
-            out = responses_text(
+            out = call_text(
                 model=model,
-                system="You are a careful technical editor. You fix corrupted formulas and placeholders while preserving structure.",
-                user=prompt,
+                system_prompt="You are a careful technical editor. You fix corrupted formulas and placeholders while preserving structure.",
+                user_prompt=prompt,
                 temperature=0.0,
                 max_output_tokens=args.rewrite_max_output_tokens,
             )

@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 from tqdm import tqdm
 
-from _openai import ModelConfig, responses_vision
+from llm_client import ModelConfig, call_vision
 
 ALLOWED_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
 
@@ -156,9 +156,9 @@ def main() -> None:
                         last_request_ts = time.time()
 
                 try:
-                    resp = responses_vision(
+                    resp = call_vision(
                         model=model,
-                        system=SYSTEM,
+                        system_prompt=SYSTEM,
                         user_text=prompt,
                         image_paths=[img_abs],
                         max_output_tokens=args.caption_max_output_tokens,

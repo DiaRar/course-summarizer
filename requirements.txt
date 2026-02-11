@@ -1,0 +1,13 @@
+langchain
+langchain-openai
+langchain-google-genai
+python-dotenv
+pydantic
+pydantic-settings
+pymupdf
+pptx2md
+tqdm
+fpdf
+Pillow
+openai
+tiktoken

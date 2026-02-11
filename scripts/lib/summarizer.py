@@ -1,0 +1,68 @@
+from pathlib import Path
+from scripts.config import settings
+from scripts.lib.llm import call_text
+
+SYSTEM_PROMPT = """You are an expert academic synthesizer.
+You summarize lecture slides into exam-grade LaTeX notes.
+- Use clean, academic LaTeX.
+- Include all key definitions, formulas, and proofs.
+- Reference extracted images using \\includegraphics.
+- Structure with \\section and \\subsection.
+- IMPORTANT: Do NOT include the full slide screenshot (`slide_png`) unless it is a complex diagram or chart that cannot be described by text. If the slide is mostly text, rely on the extracted text and do NOT include the image.
+- Prioritize using `extracted_images` over `slide_png` if available.
+"""
+
+def summarize_lecture(
+    lecture_dir: Path,
+    slide_blocks_file: Path,
+    system_prompt_override: str = None
+) -> None:
+    """
+    Summarizes a whole lecture into lecture_notes.tex.
+    For now, doing a one-shot or chunked summarization.
+    This simplifies the logic from the original script which just called LLM on the whole file or parts.
+    """
+    
+    if not slide_blocks_file.exists():
+        raise RuntimeError(f"Missing slides.json at {slide_blocks_file}")
+        
+    slides_content = slide_blocks_file.read_text(encoding="utf-8")
+    
+    # We might need to split if too large, but Gemini Flash has huge context.
+    # Let's try one-shot for simplicity and coherence, falling back if needed?
+    # Actually, original script likely just dumped it all.
+    
+    prompt = f"""
+    Here is the content of a lecture (JSON format with slide text and image paths).
+    Summarize this into a single cohesive LaTeX document (only body, no preamble).
+    
+    Content:
+    {slides_content}
+    """
+    
+    sys_prompt = system_prompt_override or SYSTEM_PROMPT
+    
+    print(f"[info] Summarizing lecture {lecture_dir.name}...")
+    
+    try:
+        out = call_text(
+            model=settings.text_model,
+            system_prompt=sys_prompt,
+            user_prompt=prompt,
+            temperature=0.1,
+            max_output_tokens=settings.rewrite_max_output_tokens * 10 # heuristic, or max allowed
+            # Actually config has 'max_output_tokens' but generic.
+            # Let's use a large default for summarization.
+        )
+        
+        # Strip markdown code blocks if present
+        if "```latex" in out:
+            out = out.split("```latex")[1].split("```")[0].strip()
+        elif "```" in out:
+            out = out.split("```")[1].split("```")[0].strip()
+            
+        (lecture_dir / "lecture_notes.tex").write_text(out, encoding="utf-8")
+        print(f"[ok] Wrote lecture_notes.tex")
+        
+    except Exception as e:
+        print(f"[error] Summarization failed: {e}")

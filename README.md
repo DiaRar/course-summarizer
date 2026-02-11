@@ -1,32 +1,30 @@
 # Course Summarizer
 
-A powerful, modular pipeline for converting academic course materials (PPTX slides and PDF documents) into coherent, textbook-style summaries using Large Language Models (LLMs).
+A production-ready, modular pipeline for converting academic course materials (PPTX, PDF) into coherent, textbook-style summaries using LLMs.
 
-Built with **LangChain**, **OpenRouter**, and **Google Gemini**, this tool automates the process of extracting text, rendering slides, captioning visuals, and synthesizing comprehensive lecture notes in LaTeX format.
+Built with **LangChain**, **Pydantic**, and **Google Gemini** (via OpenRouter), automating the process from slide extraction to LaTeX synthesis and PDF compilation.
 
 ## 🚀 Features
 
--   **Multi-Format Support**: Seamlessly processes both PowerPoint (`.pptx`) and PDF (`.pdf`) lecture slides.
+-   **Unified CLI**: Single entry point `scripts/main.py` for all operations.
+-   **Multi-Format Support**: Processes both `.pptx` and `.pdf` slides.
 -   **Intelligent Extraction**:
-    -   Extracts text and speaker notes.
-    -   Renders high-quality slide images using `pdftoppm` (for PDF) and LibreOffice (for PPTX).
-    -   **AI-Powered Captioning**: Uses Vision models (Gemini 3 Flash) to describe complex diagrams and charts.
-    -   **Glitch Fixing**: Automatically repairs broken text or OCR errors using LLMs.
--   **Modular Architecture**: Extensible design with dedicated handlers for different input formats.
--   **Academic Synthesis**:
-    -   Generates structured, exam-grade LaTeX notes.
-    -   Infers course structure (Chapters/Parts) from lecture content.
-    -   Generalizable prompts suitable for any subject (CS, Finance, Science, etc.).
--   **Cost-Effective**: Optimized for **OpenRouter** and **Google Gemini 3 Flash** for high speed and low cost.
+    -   Extracts text and renders high-quality slide images.
+    -   **AI-Powered Glitch Fixing**: Repairs OCR errors and broken math using Vision and Text models.
+    -   **Latex Synthesis**: Generates exam-grade LaTeX notes for each lecture and a unified course book.
+-   **PDF Compilation**: Automatically compiles generated LaTeX into PDFs (requires `pdflatex` or `latexmk`).
+-   **Cleanup**: Option to remove intermediate files (PNGs) to save space.
+-   **Configurable**: Uses `.env` and `scripts/config.py` for easy configuration.
 
 ## 🛠️ Prerequisites
 
-Ensure you have the following installed on your system:
-
 -   **Python 3.10+**
--   **uv** (recommended for dependency management)
--   **LibreOffice** (for PPTX conversion): `brew install --cask libreoffice` (macOS)
--   **Poppler** (for PDF rendering): `brew install poppler` (macOS)
+-   **LibreOffice** (for PPTX -> PDF conversion):
+    -   macOS: `brew install --cask libreoffice`
+-   **Poppler** (for PDF rendering):
+    -   macOS: `brew install poppler`
+-   **LaTeX Distribution** (for PDF compilation):
+    -   macOS: `brew install mactex` or `brew install basictex` (and ensuring `pdflatex` is in PATH)
 
 ## 📦 Installation
 
@@ -36,88 +34,78 @@ Ensure you have the following installed on your system:
     cd course_summarizer
     ```
 
-2.  **Install dependencies using uv**:
+2.  **Install dependencies**:
+    Using `uv` (recommended):
     ```bash
     uv venv
     source .venv/bin/activate
     uv pip install -r requirements.txt
     ```
-    *(Note: If `requirements.txt` is missing, basic dependencies are: `langchain langchain-openai pymupdf python-dotenv pptx2md-diar`)*
-
-3.  **Set up Configuration**:
-    Create a `.env` file in the root directory:
+    Or standard pip:
     ```bash
-    OPENROUTER_API_KEY=sk-or-your-api-key-here
-    # Optional: Override base URL if not using OpenRouter default
+    pip install -r requirements.txt
+    ```
+
+3.  **Configuration**:
+    Create a `.env` file:
+    ```bash
+    OPENROUTER_API_KEY=sk-your-key
+    # Optional overrides
     # OPENAI_BASE_URL=https://openrouter.ai/api/v1
+    # VISION_MODEL=google/gemini-2.0-flash-001
     ```
 
 ## 🏃 Usage
 
-### Basic Usage
+The main entry point is `scripts/main.py`.
 
-Place your lecture files (PPTX or PDF) in a `lectures/` directory and run:
+### 1. Process Lectures
 
-```bash
-python scripts/process_course.py --lectures_dir lectures --out_root out
-```
-
-This will:
-1.  Scan `lectures/` for `.pptx` and `.pdf` files.
-2.  Process each file: extract text, render images, caption visuals, and summarize.
-3.  Output processed content to `out/<lecture_name>/`.
-4.  Run structure inference and synthesized course note generation.
-
-### Advanced Options
+Scans `lectures/` directory, processes all `.pptx` and `.pdf` files, and generates summaries in `out/`.
 
 ```bash
-python scripts/process_course.py \
-  --lectures_dir lectures \
-  --out_root out \
-  --limit 2 \                       # Process only the first 2 lectures
-  --max_workers 4 \                 # Parallel processing
-  --system_prompt "You are a physics tutor." \ # Custom persona
-  --no-caption-slide-pngs \         # Disable AI image captioning
-  --no-glitch-fix-with-png          # Disable OCR correction
+python scripts/main.py process --lectures_dir lectures --out_root out --compile-pdf
 ```
 
-### Full Pipeline breakdown
+**Options:**
+-   `--compile-pdf`: Compile the final course notes into a PDF.
+-   `--clean-intermediate`: Remove intermediate slide images after processing to save space.
 
-1.  **Ingestion**: `process_course.py` detects file type.
-2.  **Conversion**:
-    -   **PPTX**: Converted to Markdown via `pptx2md`. Slides rendered to PNG via LibreOffice.
-    -   **PDF**: Text extracted via `pymupdf`. Slides rendered to PNG via `pdftoppm`.
-3.  **Enhancement**:
-    -   **Glitch Fix**: Broken text is repaired using `glitch_fix_model` (Default: Gemini 3 Flash).
-    -   **Captioning**: Slide images are analyzed by `glitch_fix_vision_model` to generate descriptions.
-4.  **Summarization**: Each lecture is summarized into `lecture_notes.tex`.
-5.  **Synthesis**:
-    -   `infer_structure.py`: Analyzes all processed lectures to determine chapter order and hierarchy.
-    -   `synthesize_course.py`: Compiles a master `course_notes.tex` document with a global glossary and unified structure.
+### 2. Synthesize Only
+
+If you have already processed lectures and want to re-run the course synthesis (merging all notes):
+
+```bash
+python scripts/main.py synthesize --out_root out --compile-pdf
+```
+
+### 3. Clean Output
+
+Removes the entire output directory.
+
+```bash
+python scripts/main.py clean --out_root out
+```
 
 ## 📂 Project Structure
 
 ```
 course_summarizer/
-├── lectures/               # Input directory (PPTX/PDF)
+├── lectures/               # Input directory
 ├── out/                    # Output directory
-│   ├── Lecture1/           # Per-lecture artifacts
-│   │   ├── slides.md       # Raw text
-│   │   ├── slides_png/     # Rendered images
-│   │   ├── captions.json   # AI Captions
-│   │   └── lecture_notes.tex
-│   └── synthesized/        # Final course output
-│       ├── structure.json
-│       └── course_notes.tex
 ├── scripts/
-│   ├── process_course.py   # Main entry point
-│   ├── handlers.py         # Format-specific logic (PDF/PPTX)
-│   ├── llm_client.py       # LangChain wrapper for OpenRouter
-│   ├── util/               # Helpers (e.g., pdf_utils.py)
-│   └── ...                 # Component scripts
-└── README.md
+│   ├── main.py             # CLI Entry Point
+│   ├── config.py           # Configuration
+│   ├── lib/                # Core modules
+│   │   ├── content_parser.py
+│   │   ├── llm.py
+│   │   ├── pdf_tools.py
+│   │   ├── summarizer.py
+│   │   └── synthesis.py
+│   └── legacy/             # Old scripts (deprecated)
+└── requirements.txt
 ```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please submit a Pull Request.

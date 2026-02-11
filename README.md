@@ -61,14 +61,14 @@ Built with **LangChain**, **Pydantic**, and **Google Gemini** (via OpenRouter), 
 
 ## 🏃 Usage
 
-The main entry point is `scripts/main.py`.
+All commands should be run from the **project root** using the module syntax:
 
 ### 1. Process Lectures
 
 Scans `lectures/` directory, processes all `.pptx` and `.pdf` files, and generates summaries in `out/`.
 
 ```bash
-python scripts/main.py process --lectures_dir lectures --out_root out --compile-pdf
+python -m scripts.main process --lectures_dir lectures --out_root out --compile-pdf
 ```
 
 **Options:**
@@ -80,7 +80,7 @@ python scripts/main.py process --lectures_dir lectures --out_root out --compile-
 If new lectures were added to the input directory, `refresh` will process **only the new ones** while keeping existing outputs intact, then rebuild the full course summary:
 
 ```bash
-python scripts/main.py refresh --lectures_dir lectures --out_root out --compile-pdf
+python -m scripts.main refresh --lectures_dir lectures --out_root out --compile-pdf
 ```
 
 A lecture is considered "already processed" if its output directory contains a `lecture_notes.tex` file.
@@ -90,7 +90,7 @@ A lecture is considered "already processed" if its output directory contains a `
 If you have already processed lectures and want to re-run the course synthesis (merging all notes):
 
 ```bash
-python scripts/main.py synthesize --out_root out --compile-pdf
+python -m scripts.main synthesize --out_root out --compile-pdf
 ```
 
 ### 4. Clean Output
@@ -98,7 +98,7 @@ python scripts/main.py synthesize --out_root out --compile-pdf
 Removes the entire output directory.
 
 ```bash
-python scripts/main.py clean --out_root out
+python -m scripts.main clean --out_root out
 ```
 
 ## 📂 Project Structure

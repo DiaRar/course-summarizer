@@ -58,7 +58,15 @@ class PptxHandler(InputHandler):
             bli_cmd.append("--glitch_fix_with_png")
         if args.glitch_fix_model:
             bli_cmd.extend(["--glitch_fix_model", args.glitch_fix_model])
-        # ... add other args as needed, mirroring run_all.py ...
+        if args.glitch_fix_vision_model:
+            bli_cmd.extend(["--glitch_fix_vision_model", args.glitch_fix_vision_model])
+        if args.glitch_fix_batch_size:
+            bli_cmd.extend(["--glitch_fix_batch_size", str(args.glitch_fix_batch_size)])
+        if args.rewrite_with_model:
+            bli_cmd.extend(["--rewrite_with_model", args.rewrite_with_model])
+        if args.rewrite_max_output_tokens:
+            bli_cmd.extend(["--rewrite_max_output_tokens", str(args.rewrite_max_output_tokens)])
+        
         run_cmd(bli_cmd)
 
     def _caption_images(self, args):

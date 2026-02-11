@@ -14,17 +14,22 @@ def main() -> None:
     ap.add_argument("--lectures_dir", default="lectures", help="Directory containing input files")
     ap.add_argument("--out_root", default="out", help="Output directory")
     ap.add_argument("--dpi", type=int, default=200, help="DPI for slide rendering")
-    ap.add_argument("--disable_notes", action="store_true", help="Disable notes extraction (PPTX only)")
-    ap.add_argument("--caption_slide_pngs", action="store_true", help="Caption full slide PNGs")
+    ap.add_argument("--caption_slide_pngs", action=argparse.BooleanOptionalAction, default=True, help="Caption full slide PNGs (Default: True)")
     ap.add_argument("--max_workers", type=int, default=2, help="Parallel workers")
     ap.add_argument("--limit", type=int, default=None, help="Limit number of lectures to process")
     
     # Glitch fix / Rewrite args
-    ap.add_argument("--glitch_fix_with_png", action="store_true")
-    ap.add_argument("--glitch_fix_model", default=None)
-    ap.add_argument("--glitch_fix_vision_model", default=None)
+    # Defaults enabled as per user request
+    from llm_client import ModelConfig
+    defaults = ModelConfig()
+    
+    ap.add_argument("--glitch_fix_with_png", action=argparse.BooleanOptionalAction, default=True, help="Use vision to fix slides (Default: True)")
+    ap.add_argument("--glitch_fix_model", default=defaults.mini_text_model, help=f"Model for text glitch fix (Default: {defaults.mini_text_model})")
+    ap.add_argument("--glitch_fix_vision_model", default=defaults.vision_model, help=f"Model for vision glitch fix (Default: {defaults.vision_model})")
     ap.add_argument("--glitch_fix_batch_size", type=int, default=5)
-    ap.add_argument("--rewrite_with_model", default=None)
+    
+    # Rewrite with model enabled by default
+    ap.add_argument("--rewrite_with_model", default=defaults.text_model, help=f"Model for slide rewriting (Default: {defaults.text_model})")
     ap.add_argument("--rewrite_max_output_tokens", type=int, default=1200)
     
     # Prompting

@@ -1,0 +1,9 @@
+out/
+out_test_gen/
+out_test_result/
+out*/
+lectures*/
+.env
+__pycache__/
+*.pyc
+.DS_Store

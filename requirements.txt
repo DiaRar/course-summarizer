@@ -5,6 +5,7 @@ python-dotenv
 pydantic
 pydantic-settings
 pymupdf
+pymupdf4llm
 pptx2md
 tqdm
 fpdf

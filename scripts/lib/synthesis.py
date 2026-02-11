@@ -92,6 +92,10 @@ def synthesize_course(out_root: Path) -> None:
     
     if not struct_path.exists():
         infer_structure(out_root)
+    
+    if not struct_path.exists():
+        print("[error] No lecture_notes.tex found — nothing to synthesize.")
+        return
         
     structure = json.loads(struct_path.read_text(encoding="utf-8"))
     
